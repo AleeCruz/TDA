@@ -1,3 +1,12 @@
+#Se comprobo que funciona correctamente con los archivos de prueba
+#Se utilizo el comando python3 archivo_pruebas_alex.py sets/10.txt
+#y se obtuvieron los resultados esperados
+#Se utilizo el comando python3 archivo_pruebas_alex.py sets/100.txt
+#y se obtuvieron los resultados esperados
+
+
+
+
 import sys
 
 def organizar_batallas(batallas):
