@@ -16,7 +16,8 @@ def organizar_batallas(batallas):
     # Ordenar por t_i / b_i en forma ascendente
     batallas_ordenadas = sorted(batallas, key=lambda x: x[0] / x[1])
 
-    for tiempo, peso in batallas_ordenadas:
+    for batalla in batallas_ordenadas:
+        tiempo, peso = batalla
         tiempo_fin_actual += tiempo
         suma_ponderada += peso * tiempo_fin_actual
 
