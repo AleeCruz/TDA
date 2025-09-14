@@ -1,4 +1,4 @@
-from Trabajo_Practico import organizar_batallas
+from tp1 import organizar_batallas
 
 def prueba_1():
     batallas = []
