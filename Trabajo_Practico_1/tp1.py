@@ -2,16 +2,52 @@ import sys
 
 ENCABEZADO = "T_i,B_i"
 
+def merge_sort(arreglo): 
+    if len(arreglo)<=1:
+        return arreglo
+
+    medio = len(arreglo)//2
+
+    izq = merge_sort(arreglo[:medio])
+    der = merge_sort(arreglo[medio:])
+
+    return merge(izq, der)
+
+def merge(izq, der):
+    i=j=0
+    res= []
+
+    while i < len(izq) and j < len(der):
+        tiempo_izq, peso_izq = izq[i]
+        tiempo_der, peso_der = der[j]
+        if tiempo_izq/peso_izq <= tiempo_der/peso_der:
+            res.append(izq[i])
+            i+=1
+        else:
+            res.append(der[j])
+            j+=1
+    
+    while i < len(izq):
+        res.append(izq[i])
+        i+=1
+        
+    while j < len(der):
+        res.append(der[j])
+        j+=1
+
+    return res
+
 # Batallas es un array de (ti, bi) 
 def organizar_batallas(batallas):
-    felicidad_actual = 0
+    tiempo_fin_actual = 0
     suma_ponderada = 0
 
-    batallas_ord = sorted(batallas, key=lambda x: x[0]/x[1])
+    batallas_ord = merge_sort(batallas)
 
     for batalla in batallas_ord:
-        felicidad_actual += batalla[0]
-        suma_ponderada += batalla[1] * felicidad_actual
+        tiempo, peso = batalla
+        tiempo_fin_actual += tiempo
+        suma_ponderada += peso * tiempo_fin_actual
 
     return batallas_ord, suma_ponderada
 
