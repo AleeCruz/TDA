@@ -1,5 +1,7 @@
 import sys
 
+ENCABEZADO = "T_i,B_i"
+
 # Batallas es un array de (ti, bi) 
 def organizar_batallas(batallas):
     felicidad_actual = 0
@@ -18,13 +20,16 @@ def procesar_archivo_batallas(ruta_archivo):
     try:
         with open(ruta_archivo, 'r') as archivo:
             for linea in archivo:
-                ti, bi = map(int, linea.split())
+                linea = linea.strip()
+                if not linea or linea == ENCABEZADO:
+                    continue
+                ti, bi = map(int, linea.split(","))
                 batallas.append((ti, bi))
     except FileNotFoundError:
         print(f"Error: el archivo {ruta_archivo} no existe.")
         return None
     except ValueError:
-        print("Error: el archivo no tiene el formato esperado. Ejemplo: (<ti> <bi>).")
+        print("Error: el archivo no tiene el formato esperado. Ejemplo: (<ti>,<bi>).")
         return None
     return batallas
 
@@ -37,6 +42,7 @@ def main():
     batallas = procesar_archivo_batallas(archivo_entrada)
 
     if not batallas:
+        print("No se encontraron batallas válidas.")
         return 1
     
     orden, suma = organizar_batallas(batallas)
