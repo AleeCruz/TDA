@@ -27,7 +27,7 @@ def main_generador():
     """
     # Define los tamaños de entrada (n) que quieres probar.
     # Puedes añadir más valores si quieres un gráfico con más puntos.
-    tamanios_n = [20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000]
+    tamanios_n = [420000, 430000, 440000, 450000, 460000, 470000, 480000, 490000]
     ruta_destino = "sets"
     
     for n in tamanios_n:
