@@ -1,47 +1,11 @@
-# Importaciones necesarias
 import os
 import time
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
-# A continuación, incluye todas tus funciones
-# procesar_archivo_batallas, merge_sort, merge, organizar_batallas
+ENCABEZADO = "T_i,B_i"
 
-# Batallas es un array de (ti, bi)
-def organizar_batallas(batallas):
-    tiempo_fin_actual = 0
-    suma_ponderada = 0
-
-    batallas_ord = merge_sort(batallas)
-
-    for batalla in batallas_ord:
-        tiempo, peso = batalla
-        tiempo_fin_actual += tiempo
-        suma_ponderada += peso * tiempo_fin_actual
-
-    return batallas_ord, suma_ponderada
-
-def procesar_archivo_batallas(ruta_archivo):
-    batallas = []
-    ENCABEZADO = "T_i,B_i"
-    try:
-        with open(ruta_archivo, 'r') as archivo:
-            for linea in archivo:
-                linea = linea.strip()
-                if not linea or linea == ENCABEZADO:
-                    continue
-                ti, bi = map(int, linea.split(","))
-                batallas.append((ti, bi))
-    except FileNotFoundError:
-        print(f"Error: el archivo {ruta_archivo} no existe.")
-        return None
-    except ValueError:
-        print("Error: el archivo no tiene el formato esperado. Ejemplo: (<ti>,<bi>).")
-        return None
-    return batallas
-
-# Funciones de merge_sort y merge (sin cambios)
 def merge_sort(arreglo):
     if len(arreglo) <= 1:
         return arreglo
@@ -62,79 +26,100 @@ def merge(izq, der):
         else:
             res.append(der[j])
             j += 1
+    
     while i < len(izq):
         res.append(izq[i])
         i += 1
+    
     while j < len(der):
         res.append(der[j])
         j += 1
+
     return res
+
+def organizar_batallas(batallas):
+    tiempo_fin_actual = 0
+    suma_ponderada = 0
+    batallas_ord = merge_sort(batallas)
+    for batalla in batallas_ord:
+        tiempo, peso = batalla
+        tiempo_fin_actual += tiempo
+        suma_ponderada += peso * tiempo_fin_actual
+    return batallas_ord, suma_ponderada
+
+def procesar_archivo_batallas(ruta_archivo):
+    batallas = []
+    try:
+        with open(ruta_archivo, 'r') as archivo:
+            for linea in archivo:
+                linea = linea.strip()
+                if not linea or linea == ENCABEZADO:
+                    continue
+                ti, bi = map(int, linea.split(","))
+                batallas.append((ti, bi))
+    except FileNotFoundError:
+        print(f"Error: el archivo {ruta_archivo} no existe.")
+        return None
+    except ValueError:
+        print("Error: el archivo no tiene el formato esperado. Ejemplo: (<ti>,<bi>).")
+        return None
+    return batallas
 
 def main_mediciones():
     """
     Ejecuta el análisis de complejidad empírica.
     """
     ruta_carpeta = "sets"
-    
-    # 1. Recopilar datos de los archivos en la carpeta 'sets'
     archivos_txt = [f for f in os.listdir(ruta_carpeta) if f.endswith('.txt')]
-    tamanios_n = sorted([int(f.split('.')[0]) for f in archivos_txt])
+    
+    tamanios_n = []
     tiempos_promedio = []
 
-    for n in tamanios_n:
-        archivo_path = os.path.join(ruta_carpeta, f"{n}.txt")
-        tiempos_ejecucion = []
-        num_pruebas = 5  # Múltiples mediciones para un promedio confiable
-
-        for _ in range(num_pruebas):
-            batallas = procesar_archivo_batallas(archivo_path)
-            if batallas is None: continue
+    for f in archivos_txt:
+        nombre_sin_extension = os.path.splitext(f)[0]
+        
+        # Este es el cambio clave que evita el error
+        if nombre_sin_extension.isdigit():
+            n = int(nombre_sin_extension)
+            tamanios_n.append(n)
             
-            inicio_tiempo = time.time()
-            organizar_batallas(batallas)
-            fin_tiempo = time.time()
-            tiempos_ejecucion.append(fin_tiempo - inicio_tiempo)
-            
-        if tiempos_ejecucion:
-            tiempo_promedio = sum(tiempos_ejecucion) / len(tiempos_ejecucion)
-            tiempos_promedio.append(tiempo_promedio)
-        else:
-            tiempos_promedio.append(0)
+            archivo_path = os.path.join(ruta_carpeta, f)
+            tiempos_ejecucion = []
+            num_pruebas = 5
 
-    # 2. Preparar los datos para el ajuste O(n log n)
-    # Convertimos a arrays de numpy para facilidad de cálculo
+            for _ in range(num_pruebas):
+                batallas = procesar_archivo_batallas(archivo_path)
+                if batallas is None: continue
+                
+                inicio_tiempo = time.time()
+                organizar_batallas(batallas)
+                fin_tiempo = time.time()
+                tiempos_ejecucion.append(fin_tiempo - inicio_tiempo)
+                
+            if tiempos_ejecucion:
+                tiempo_promedio = sum(tiempos_ejecucion) / len(tiempos_ejecucion)
+                tiempos_promedio.append(tiempo_promedio)
+            else:
+                tiempos_promedio.append(0)
+
+    tamanios_n, tiempos_promedio = zip(*sorted(zip(tamanios_n, tiempos_promedio)))
+    
     n_array = np.array(tamanios_n)
     tiempos_array = np.array(tiempos_promedio)
     
-    # Preparamos los datos para la regresión lineal
-    # x_regresion = n_array * np.log(n_array)
-    # coeficientes = np.polyfit(x_regresion, tiempos_array, 1)
-    # constante_C = coeficientes[0]
-    
-    # Opcionalmente, para un ajuste más directo, podemos usar una técnica de escalado simple
-    # para encontrar una constante C que ajuste bien la curva teórica.
-    # Evitamos log(0)
     indices_validos = n_array > 1
     if np.any(indices_validos):
         n_validos = n_array[indices_validos]
         tiempos_validos = tiempos_array[indices_validos]
-        # Calcular la constante C a partir del último punto
         C = tiempos_validos[-1] / (n_validos[-1] * np.log(n_validos[-1]))
     else:
         C = 0
 
-    # 3. Generar el gráfico
     plt.figure(figsize=(10, 6))
-    
-    # Graficar los puntos de las mediciones empíricas
     plt.scatter(n_array, tiempos_array, label='Mediciones Empíricas', color='red')
-    
-    # Graficar la curva teórica O(n log n)
     x_teorica = np.linspace(n_array.min(), n_array.max(), 100)
     y_teorica = C * x_teorica * np.log(x_teorica)
-    
     plt.plot(x_teorica, y_teorica, label=f'Complejidad Teórica O(n log n) con C={C:.2e}', linestyle='--', color='blue')
-
     plt.title('Análisis de Tiempos de Ejecución')
     plt.xlabel('Tamaño de Entrada (n)')
     plt.ylabel('Tiempo de Ejecución (segundos)')
@@ -142,9 +127,22 @@ def main_mediciones():
     plt.grid(True)
     plt.show()
 
-
-if __name__ == "__main__":
+def main():
     if len(sys.argv) > 1 and sys.argv[1] == "mediciones":
         main_mediciones()
+    elif len(sys.argv) != 2:
+        print("Uso: python3 archivo_pruebas_alex.py <archivo_entrada.txt> | python3 archivo_pruebas_alex.py mediciones")
+        return 1
     else:
-        sys.exit(main())
+        archivo_entrada = sys.argv[1]
+        batallas = procesar_archivo_batallas(archivo_entrada)
+        if not batallas:
+            print("No se encontraron batallas válidas.")
+            return 1
+        orden, suma = organizar_batallas(batallas)
+        print("Orden de batallas:", orden)
+        print("Suma ponderada:", suma)
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
