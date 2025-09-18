@@ -22,8 +22,8 @@ def generar_datos_prueba(n, ruta_carpeta, nombre_archivo):
 
 def main():
     # Especifica aquí el nombre del archivo y la cantidad de datos
-    nombre_archivo = "500000.txt"
-    cantidad_datos = 500000
+    nombre_archivo = "400000.txt"
+    cantidad_datos = 400000
     ruta_destino = "sets"
     
     generar_datos_prueba(cantidad_datos, ruta_destino, nombre_archivo)
